@@ -59,7 +59,9 @@ class _InputScreenState extends State<InputScreen> {
   // ─── Build Patient Input from form ───────────────────────────────────────
   PatientInput _buildInput() {
     return PatientInput(
-      name: _nameController.text.trim().isEmpty ? 'Jane / John Doe' : _nameController.text.trim(),
+      name: _nameController.text.trim().isEmpty
+          ? 'No Name Entered'
+          : _nameController.text.trim(),
       age: int.parse(_ageController.text),
       gender: _selectedGender,
       bmi: double.parse(_bmiController.text),
@@ -139,11 +141,9 @@ class _InputScreenState extends State<InputScreen> {
         backgroundColor: Theme.of(context).colorScheme.surface,
         actions: [
           IconButton(
-            icon: Icon(
-              context.watch<ThemeProvider>().isDarkMode 
-                  ? Icons.light_mode_rounded 
-                  : Icons.dark_mode_rounded
-            ),
+            icon: Icon(context.watch<ThemeProvider>().isDarkMode
+                ? Icons.light_mode_rounded
+                : Icons.dark_mode_rounded),
             onPressed: () {
               context.read<ThemeProvider>().toggleTheme();
             },
@@ -184,7 +184,10 @@ class _InputScreenState extends State<InputScreen> {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withOpacity(0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -195,7 +198,10 @@ class _InputScreenState extends State<InputScreen> {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withOpacity(0.1),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -221,7 +227,11 @@ class _InputScreenState extends State<InputScreen> {
                           Text(
                             'Fill in the patient\'s health parameters below to generate a comprehensive risk prediction.',
                             style: TextStyle(
-                              color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.8),
+                              color: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.color
+                                  ?.withOpacity(0.8),
                               fontSize: 13,
                               height: 1.4,
                             ),
@@ -245,7 +255,7 @@ class _InputScreenState extends State<InputScreen> {
                 textCapitalization: TextCapitalization.words,
                 decoration: InputDecoration(
                   labelText: 'Patient Name (Optional)',
-                  hintText: 'Jane Doe',
+                  hintText: 'Full Name',
                   prefixIcon: const Icon(Icons.badge_rounded, size: 20),
                 ),
               ),
@@ -280,7 +290,8 @@ class _InputScreenState extends State<InputScreen> {
                       ),
                       items: const [
                         DropdownMenuItem(value: 'male', child: Text('Male')),
-                        DropdownMenuItem(value: 'female', child: Text('Female')),
+                        DropdownMenuItem(
+                            value: 'female', child: Text('Female')),
                       ],
                       onChanged: (val) {
                         setState(() => _selectedGender = val!);
@@ -400,7 +411,10 @@ class _InputScreenState extends State<InputScreen> {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withOpacity(0.3),
                         blurRadius: 12,
                         offset: const Offset(0, 6),
                       ),
@@ -416,42 +430,42 @@ class _InputScreenState extends State<InputScreen> {
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
-                  child: isLoading
-                      ? const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            SizedBox(
-                              width: 22,
-                              height: 22,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2.5,
+                    child: isLoading
+                        ? const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2.5,
+                                ),
                               ),
-                            ),
-                            SizedBox(width: 12),
-                            Text(
-                              'Analyzing...',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                              SizedBox(width: 12),
+                              Text(
+                                'Analyzing...',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                          ],
-                        )
-                      : const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.analytics_rounded, size: 22),
-                            SizedBox(width: 10),
-                            Text(
-                              'Predict Disease Risk',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                            ],
+                          )
+                        : const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.analytics_rounded, size: 22),
+                              SizedBox(width: 10),
+                              Text(
+                                'Predict Disease Risk',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
+                            ],
+                          ),
                   ),
                 ),
               ),

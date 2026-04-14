@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/prediction_result.dart';
+import '../models/patient_input.dart';
 import '../services/prediction_provider.dart';
 import '../widgets/risk_gauge.dart';
 import '../widgets/feature_chart.dart';

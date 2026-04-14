@@ -50,9 +50,13 @@ class _InputScreenState extends State<InputScreen> {
   }
 
   // ─── Validation helpers ───────────────────────────────────────────────────
-  String? _requiredNumber(String? val, String fieldName) {
+  String? _requiredNumber(String? val, String fieldName,
+      {double? min, double? max}) {
     if (val == null || val.isEmpty) return '$fieldName is required';
-    if (double.tryParse(val) == null) return 'Enter a valid number';
+    final number = double.tryParse(val);
+    if (number == null) return 'Enter a valid number';
+    if (min != null && number < min) return 'Must be at least ${min.toInt()}';
+    if (max != null && number > max) return 'Must be at most ${max.toInt()}';
     return null;
   }
 
@@ -268,7 +272,8 @@ class _InputScreenState extends State<InputScreen> {
                       hint: '45',
                       unit: 'yrs',
                       controller: _ageController,
-                      validator: (v) => _requiredNumber(v, 'Age'),
+                      validator: (v) =>
+                          _requiredNumber(v, 'Age', min: 1, max: 120),
                     ),
                   ),
                   const SizedBox(width: 14),
@@ -292,6 +297,10 @@ class _InputScreenState extends State<InputScreen> {
                         DropdownMenuItem(value: 'male', child: Text('Male')),
                         DropdownMenuItem(
                             value: 'female', child: Text('Female')),
+                        DropdownMenuItem(value: 'other', child: Text('Other')),
+                        DropdownMenuItem(
+                            value: 'prefer not to say',
+                            child: Text('Prefer not to say')),
                       ],
                       onChanged: (val) {
                         setState(() => _selectedGender = val!);
@@ -314,7 +323,7 @@ class _InputScreenState extends State<InputScreen> {
                 unit: 'kg/m²',
                 controller: _bmiController,
                 allowDecimal: true,
-                validator: (v) => _requiredNumber(v, 'BMI'),
+                validator: (v) => _requiredNumber(v, 'BMI', min: 10, max: 100),
               ),
               const SizedBox(height: 14),
               NumericInputField(
@@ -322,7 +331,8 @@ class _InputScreenState extends State<InputScreen> {
                 hint: '120',
                 unit: 'mmHg',
                 controller: _bpController,
-                validator: (v) => _requiredNumber(v, 'Blood Pressure'),
+                validator: (v) =>
+                    _requiredNumber(v, 'Blood Pressure', min: 50, max: 300),
               ),
               const SizedBox(height: 14),
               NumericInputField(
@@ -330,7 +340,8 @@ class _InputScreenState extends State<InputScreen> {
                 hint: '72',
                 unit: 'bpm',
                 controller: _heartRateController,
-                validator: (v) => _requiredNumber(v, 'Heart Rate'),
+                validator: (v) =>
+                    _requiredNumber(v, 'Heart Rate', min: 30, max: 250),
               ),
               const SizedBox(height: 24),
 
@@ -345,7 +356,8 @@ class _InputScreenState extends State<InputScreen> {
                 hint: '200',
                 unit: 'mg/dL',
                 controller: _cholesterolController,
-                validator: (v) => _requiredNumber(v, 'Cholesterol'),
+                validator: (v) =>
+                    _requiredNumber(v, 'Cholesterol', min: 50, max: 600),
               ),
               const SizedBox(height: 14),
               NumericInputField(
@@ -353,7 +365,8 @@ class _InputScreenState extends State<InputScreen> {
                 hint: '100',
                 unit: 'mg/dL',
                 controller: _glucoseController,
-                validator: (v) => _requiredNumber(v, 'Glucose'),
+                validator: (v) =>
+                    _requiredNumber(v, 'Glucose', min: 50, max: 1000),
               ),
               const SizedBox(height: 24),
 

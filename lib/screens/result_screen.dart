@@ -66,7 +66,7 @@ class ResultScreen extends StatelessWidget {
               final r = provider.result;
               final i = provider.lastInput;
               if (r != null && i != null) {
-                 final recs = _getRecommendations(r);
+                 final recs = _getRecommendations(r, i);
                  await ReportGenerator.generateAndPreviewPdf(i, r, recs);
               } else {
                  ScaffoldMessenger.of(context).showSnackBar(
@@ -184,7 +184,7 @@ class ResultScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   DailyActionChecklist(
-                    recommendations: _getRecommendations(result),
+                    recommendations: _getRecommendations(result, input),
                   ),
                 ],
               ),
@@ -245,31 +245,131 @@ class ResultScreen extends StatelessWidget {
     }
   }
 
-  // ─── Helper: recommendations based on result ─────────────────────────────
-  List<String> _getRecommendations(PredictionResult result) {
+  // ─── Helper: personalized recommendations based on result & input ──────
+  List<String> _getRecommendations(PredictionResult result, PatientInput? input) {
     final recs = <String>[];
     final explanations = result.explanation;
+    final isHighRisk = result.prediction.toLowerCase().contains('high');
+    final isMediumRisk = result.prediction.toLowerCase().contains('medium');
 
-    if (explanations.containsKey('Glucose') || explanations.containsKey('glucose')) {
-      recs.add('Monitor blood glucose levels regularly and consider a low-glycemic diet.');
-    }
-    if (explanations.containsKey('BMI') || explanations.containsKey('bmi')) {
-      recs.add('Work towards maintaining a healthy BMI through balanced nutrition and exercise.');
-    }
-    if (explanations.containsKey('Blood Pressure') ||
-        explanations.containsKey('blood_pressure')) {
-      recs.add('Reduce sodium intake, manage stress, and monitor blood pressure frequently.');
-    }
-    if (explanations.containsKey('Cholesterol') ||
-        explanations.containsKey('cholesterol')) {
-      recs.add('Follow a heart-healthy diet low in saturated fats to manage cholesterol.');
-    }
-    if (explanations.containsKey('Smoking') || explanations.containsKey('smoking')) {
-      recs.add('Quitting smoking significantly reduces cardiovascular and metabolic risk.');
+    // Helper to check if a factor is present (handles all casing from API)
+    bool hasFactor(String name) {
+      return explanations.keys.any(
+        (k) => k.toLowerCase() == name.toLowerCase(),
+      );
     }
 
-    // Default recommendation always shown
-    recs.add('Schedule a consultation with a healthcare professional for a full evaluation.');
+    String? factorLevel(String name) {
+      for (final entry in explanations.entries) {
+        if (entry.key.toLowerCase() == name.toLowerCase()) {
+          return entry.value;
+        }
+      }
+      return null;
+    }
+
+    // ── Glucose ──
+    if (hasFactor('glucose')) {
+      final level = factorLevel('glucose');
+      if (level == 'major contributor') {
+        recs.add('⚠️ Your glucose level (${input?.glucose ?? ""} mg/dL) is a major risk factor. '
+            'Consult an endocrinologist, follow a strict low-glycemic diet, and monitor glucose daily.');
+      } else if (level == 'moderate contributor') {
+        recs.add('Your glucose level needs attention. Reduce sugar and refined carbs, '
+            'exercise 30 min/day, and get HbA1c tested every 3 months.');
+      } else {
+        recs.add('Maintain healthy glucose levels by limiting sugary foods and staying active.');
+      }
+    }
+
+    // ── BMI ──
+    if (hasFactor('bmi')) {
+      final bmi = input?.bmi ?? 0;
+      final level = factorLevel('bmi');
+      if (level == 'major contributor' || bmi > 35) {
+        recs.add('⚠️ Your BMI ($bmi) indicates significant weight concern. '
+            'Consider a structured weight management program with a dietitian and aim for 5-10% weight loss.');
+      } else if (bmi > 30) {
+        recs.add('Your BMI ($bmi) is in the obese range. '
+            'Focus on portion control, daily 30-45 min walks, and reduce processed foods.');
+      } else if (bmi > 25) {
+        recs.add('Your BMI ($bmi) is slightly elevated. '
+            'Maintain a balanced diet and increase physical activity to 150 min/week.');
+      }
+    }
+
+    // ── Blood Pressure ──
+    if (hasFactor('blood pressure')) {
+      final bp = input?.bloodPressure ?? 0;
+      final level = factorLevel('blood pressure');
+      if (level == 'major contributor' || bp > 160) {
+        recs.add('⚠️ Your blood pressure ($bp mmHg) is dangerously high. '
+            'Seek medical attention immediately. Reduce salt to <1500mg/day, avoid alcohol, and manage stress.');
+      } else if (bp > 130) {
+        recs.add('Your blood pressure ($bp mmHg) is elevated. '
+            'Adopt the DASH diet, exercise regularly, reduce salt intake, and monitor weekly.');
+      } else {
+        recs.add('Keep blood pressure in check with low-sodium meals, regular cardio, and stress management.');
+      }
+    }
+
+    // ── Cholesterol ──
+    if (hasFactor('cholesterol')) {
+      final chol = input?.cholesterol ?? 0;
+      final level = factorLevel('cholesterol');
+      if (level == 'major contributor' || chol > 280) {
+        recs.add('⚠️ Your cholesterol ($chol mg/dL) is a major concern. '
+            'Consult a cardiologist, avoid trans fats, and consider omega-3 supplements.');
+      } else if (chol > 240) {
+        recs.add('Your cholesterol ($chol mg/dL) is high. '
+            'Eat more fiber, oats, and fatty fish. Limit red meat and fried foods.');
+      } else if (chol > 200) {
+        recs.add('Your cholesterol ($chol mg/dL) is borderline. '
+            'Choose lean proteins, use olive oil, and get lipid panels done annually.');
+      }
+    }
+
+    // ── Heart Rate ──
+    if (hasFactor('heart rate')) {
+      final hr = input?.heartRate ?? 0;
+      if (hr > 100) {
+        recs.add('Your resting heart rate ($hr bpm) is elevated. '
+            'Reduce caffeine, practice deep breathing, and consult a doctor if persistent.');
+      } else if (hr > 90) {
+        recs.add('Your heart rate ($hr bpm) is slightly high. '
+            'Regular cardio exercise can help lower resting heart rate over time.');
+      }
+    }
+
+    // ── Age ──
+    if (hasFactor('age')) {
+      final age = input?.age ?? 0;
+      if (age > 65) {
+        recs.add('At age $age, regular comprehensive health screenings are essential. '
+            'Schedule annual checkups including cardiac, metabolic, and cancer screening.');
+      } else if (age > 50) {
+        recs.add('At age $age, proactive health monitoring becomes important. '
+            'Get annual blood work, maintain an active lifestyle, and prioritize sleep quality.');
+      }
+    }
+
+    // ── Smoking ──
+    if (hasFactor('smoking')) {
+      recs.add('🚭 Smoking is a critical risk factor. Quitting smoking can reduce cardiovascular risk by 50% within 1 year. '
+          'Explore nicotine replacement therapy or consult your doctor for a quit plan.');
+    }
+
+    // ── Risk-level specific advice ──
+    if (isHighRisk) {
+      recs.add('🏥 HIGH PRIORITY: Schedule an urgent consultation with your healthcare provider. '
+          'Multiple risk factors require professional medical guidance and possibly medication.');
+    } else if (isMediumRisk) {
+      recs.add('📋 Schedule a checkup within the next month. Focus on lifestyle changes — '
+          'diet, exercise, and stress management can significantly reduce your risk.');
+    } else {
+      recs.add('✅ Your risk profile looks good! Continue your healthy habits. '
+          'Stay active, eat well, and get routine checkups annually.');
+    }
 
     return recs;
   }
